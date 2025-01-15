@@ -94,4 +94,7 @@ echo out/gpio_toggle.bin
 "arm-none-eabi-objcopy" -O ihex -R .eh_frame -R .init -R .fini -R .comment -R .ARM.attributes out/gpio_toggle.elf out/gpio_toggle.hex
 echo Build completed.
 
+
+
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mthumb-interwork -Wl,--gc-sections -Wl,--wrap=printf -Wl,--wrap=sprintf -Wl,--wrap=snprintf -Wl,-Map=build/lora-ra-08.map -Tcfg/gcc.ld -o build/src/main.o build/src/main.o build/src/tremo_it.o build/platform/system/system_cm4.o build/drivers/peripheral/src/tremo_adc.o build/drivers/peripheral/src/tremo_bstimer.o build/drivers/peripheral/src/tremo_crc.o build/drivers/peripheral/src/tremo_dac.o build/drivers/peripheral/src/tremo_delay.o build/drivers/peripheral/src/tremo_dma.o build/drivers/peripheral/src/tremo_flash.o build/drivers/peripheral/src/tremo_gpio.o build/drivers/peripheral/src/tremo_i2c.o build/drivers/peripheral/src/tremo_i2s.o build/drivers/peripheral/src/tremo_iwdg.o build/drivers/peripheral/src/tremo_lcd.o build/drivers/peripheral/src/tremo_lptimer.o build/drivers/peripheral/src/tremo_lpuart.o build/drivers/peripheral/src/tremo_pwr.o build/drivers/peripheral/src/tremo_rcc.o build/drivers/peripheral/src/tremo_rtc.o build/drivers/peripheral/src/tremo_spi.o build/drivers/peripheral/src/tremo_system.o build/drivers/peripheral/src/tremo_timer.o build/drivers/peripheral/src/tremo_uart.o build/drivers/peripheral/src/tremo_wdg.o build/platform/system/startup_cm4.o
 ```
