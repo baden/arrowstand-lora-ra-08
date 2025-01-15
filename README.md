@@ -1,3 +1,45 @@
+## LoRa на модулі AI-Thinker RA-08
+
+Для Linux:
+
+```bash
+sudo apt-get install gcc-arm-none-eabi git python3 python3-pip python3-venv
+```
+
+Для Mac мабуть (я не перевіряв, в мене вже було все встановлено):
+
+```bash
+brew install install gcc-arm-none-eabi git python3 python3-pip python3-venv
+```
+
+Скачуємо репозиторій.
+
+```bash
+git clone https://github.com/baden/arrowstand-lora-ra-08.git
+cd arrowstand-lora-ra-08
+```
+
+Створюємо віртуальне оточення шоб не мусорити:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install pyserial configparser
+```
+
+Збираємо.
+
+```bash
+make
+```
+
+Прошиваємо
+
+```bash
+PORT=/dev/ttyUSB0 make flash
+```
+
+
 ## Проба №1
 
 По https://github.com/Ai-Thinker-Open/Ai-Thinker-LoRaWAN-Ra-08 пройшов. З умови деяких дрібних поправок, приклади зібрались та запустились.

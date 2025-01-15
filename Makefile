@@ -45,6 +45,8 @@ $(BUILD_DIR)/$(PROJECT).bin: $(BUILD_DIR)/$(PROJECT).elf
 
 all: $(BUILD_DIR)/$(PROJECT).bin
 
+flash: $(BUILD_DIR)/$(PROJECT).bin
+	python3 scripts/tremo_loader.py -p ${PORT} -b 921600 flash 0x08000000 $<
 
 clean:
 	@rm -rf $(BUILD_DIR)
