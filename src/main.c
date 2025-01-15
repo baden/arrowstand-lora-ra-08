@@ -4,6 +4,7 @@
 #include "tremo_delay.h"
 #include "tremo_uart.h"
 #include "board_led.h"
+#include "oled_min.h"
 
 #define TEST_GPIOX GPIOA
 #define TEST_PIN   GPIO_PIN_9
@@ -46,6 +47,8 @@ static void board_init()
     uart_log_init();
 
     board_led_init();
+    OLED_init();
+    // oled_init();
 
     // RtcInit();
 }
@@ -57,6 +60,10 @@ int main(void)
     board_init();
 
     printf("LoRa RA-08 ArrowStand sensor Start!\r\n");
+
+    // OLED_clear();
+    // OLED_print(0, 0, "Hello World", 1, 1);
+    // OLED_fill(0xAA);
 
     /* Infinite loop */
     while (1) {

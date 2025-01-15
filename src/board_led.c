@@ -17,10 +17,10 @@ void board_led_init(void)
 	gpio_init(GPIOA, GPIO_PIN_7, GPIO_MODE_OUTPUT_PP_LOW);
 
     //Dual LED
-    gpio_set_iomux(GPIOA, GPIO_PIN_14,0);
-    gpio_set_iomux(GPIOA, GPIO_PIN_15,0);
-    gpio_init(GPIOA, GPIO_PIN_14, GPIO_MODE_OUTPUT_PP_LOW);
-	gpio_init(GPIOA, GPIO_PIN_15, GPIO_MODE_OUTPUT_PP_LOW);
+    // gpio_set_iomux(GPIOA, GPIO_PIN_14,0);
+    // gpio_set_iomux(GPIOA, GPIO_PIN_15,0);
+    // gpio_init(GPIOA, GPIO_PIN_14, GPIO_MODE_OUTPUT_PP_LOW);
+	// gpio_init(GPIOA, GPIO_PIN_15, GPIO_MODE_OUTPUT_PP_LOW);
 }
 
 void board_led_rgb(bool r, bool g, bool b)
@@ -30,12 +30,12 @@ void board_led_rgb(bool r, bool g, bool b)
 	gpio_write(GPIOA, GPIO_PIN_7, b ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 
-void board_led_cold(bool on)
-{
-    gpio_write(GPIOA, GPIO_PIN_14, on ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
-}
+// void board_led_cold(bool on)
+// {
+//     gpio_write(GPIOA, GPIO_PIN_14, on ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+// }
 
-void board_led_warm(bool on)
-{
-    gpio_write(GPIOA, GPIO_PIN_15, on ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
-}
+// void board_led_warm(bool on)
+// {
+//     gpio_write(GPIOA, GPIO_PIN_15, on ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+// }

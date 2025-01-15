@@ -37,9 +37,9 @@ class TremoLoader(object):
         header = self.ser.read(4)
         if header == b'':
             raise CmdException("Read response header timeout")
-        print('recv Packed Value :', binascii.hexlify(header))
+        # print('recv Packed Value :', binascii.hexlify(header))
         (start, status, rsp_data_len) = struct.unpack('<BBH', header)
-        print('start:', start, 'status:', status, 'rsp_data_len:', rsp_data_len)
+        # print('start:', start, 'status:', status, 'rsp_data_len:', rsp_data_len)
         if start != 0xFE:
             raise CmdException("Wrong response packet")
         if rsp_data_len > 512:

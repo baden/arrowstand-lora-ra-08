@@ -67,7 +67,7 @@ void i2c_init(i2c_t* i2cx, i2c_config_t* config)
 
     uint32_t i2c_clk_freq = (i2cx == I2C0) ? rcc_get_clk_freq(RCC_PCLK0) : rcc_get_clk_freq(RCC_PCLK1);
     uint32_t slv, flv;
-    uint32_t i2c_speed_standard = 100000;
+    uint32_t i2c_speed_standard = 100000; //100000;
     uint32_t i2c_speed_fast     = 400000;
     slv                         = (i2c_clk_freq / i2c_speed_standard - 8) / 2;
     flv                         = (i2c_clk_freq / i2c_speed_fast - 8) / 2 - 1;

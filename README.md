@@ -41,6 +41,29 @@ PORT=/dev/ttyUSB0 make flash
 
 От, сюка. Под Linux прошивається, а от під Мас не хоче.
 
+
+## Распіновка
+
+GPIO5 - Internal LED R
+GPIO4 - Internal LED G
+GPIO7 - Internal LED B
+
+GPIO14 - I2C0_SCL (alt=3)
+GPIO15 - I2C0_SDA (alt=3)
+
+GPIO9 - Toggle each 1 sec
+
+GPIO16 | GPIO_PORTB_0 | UART0_RXD (fun=1)
+GPIO17 | GPIO_PORTB_1 | UART0_TXD (fun=1)
+
+
+## Посилання
+
+Документація (https://drive.google.com/drive/folders/1TeFu02b9EZpESxnhLrE_o-G0U0cJ4ivc)
+
+[MUX table](https://drive.google.com/drive/folders/1ph9s0ZU6HYJ4AYP4xbFndDFbg8pSCYrn)
+
+
 ## Проба №1
 
 По https://github.com/Ai-Thinker-Open/Ai-Thinker-LoRaWAN-Ra-08 пройшов. З умови деяких дрібних поправок, приклади зібрались та запустились.
