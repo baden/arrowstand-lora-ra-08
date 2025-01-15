@@ -7,13 +7,15 @@ BUILD_DIR := build
 SOURCES := $(wildcard src/*.c) \
 	platform/system/system_cm4.c  \
 	platform/system/startup_cm4.S \
-	$(wildcard drivers/peripheral/src/*.c)
+	platform/system/printf-stdarg.c \
+	$(wildcard drivers/peripheral/src/*.c) 
 
 
 CFLAGS  := -mcpu=cortex-m4 -mthumb
 CFLAGS  += -Wall -Os -ffunction-sections -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fsingle-precision-constant
 CFLAGS  += -std=gnu99 -fno-builtin-printf -fno-builtin-sprintf -fno-builtin-snprintf
 CFLAGS  += -I inc -I platform/CMSIS -I platform/common -I platform/system -I drivers/peripheral/inc
+CFLAGS  += -DCONFIG_DEBUG_UART=UART0
 
 LDFLAGS := -mcpu=cortex-m4 -mthumb -mthumb-interwork
 LDFLAGS += -Wl,--gc-sections -Wl,--wrap=printf -Wl,--wrap=sprintf -Wl,--wrap=snprintf
@@ -47,6 +49,9 @@ all: $(BUILD_DIR)/$(PROJECT).bin
 
 flash: $(BUILD_DIR)/$(PROJECT).bin
 	python3 scripts/tremo_loader.py -p ${PORT} -b 921600 flash 0x08000000 $<
+
+flash1: $(BUILD_DIR)/$(PROJECT).bin
+	python3 scripts/tremo_loader.py -p ${PORT} -b 115200 flash 0x08000000 $<
 
 clean:
 	@rm -rf $(BUILD_DIR)

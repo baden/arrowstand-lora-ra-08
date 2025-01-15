@@ -39,6 +39,7 @@ make
 PORT=/dev/ttyUSB0 make flash
 ```
 
+От, сюка. Под Linux прошивається, а от під Мас не хоче.
 
 ## Проба №1
 
