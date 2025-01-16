@@ -42,20 +42,34 @@ PORT=/dev/ttyUSB0 make flash
 От, сюка. Под Linux прошивається, а от під Мас не хоче.
 
 
-## Распіновка
+## Распіновка виводів модуля RA-08 (і відлагоджувальної плати)
 
-GPIO5 - Internal LED R
-GPIO4 - Internal LED G
-GPIO7 - Internal LED B
+1,17 - GND
 
-GPIO14 - I2C0_SCL (alt=3)
-GPIO15 - I2C0_SDA (alt=3)
 
-GPIO9 - Toggle each 1 sec
+2 - GPIO8/ADC_IN1
+3 - GPIO11/ADC_IN0
 
-GPIO16 | GPIO_PORTB_0 | UART0_RXD (fun=1)
-GPIO17 | GPIO_PORTB_1 | UART0_TXD (fun=1)
+4 - GPIO9/DAC_OUT - Toggle each 1 sec
 
+5 - GPIO4/SSPI_CLK - Internal LED G
+6 - GPIO5/SSPI_NSS - Internal LED R
+7 - SWCLK, GPIO7 - Internal LED B (?)
+8 - SWDIO, GPIO6/SWD_DATA
+
+9 - VCC 3,3V
+
+10 - LPRXD, GPIO60/LPUART-RX
+11 - TXD, GPIO17 | GPIO_PORTB_1 | UART0_TXD (fun=1)
+12 - GPIO16 | GPIO_PORTB_0 | UART0_RXD (fun=1)       Я так розумію це або RXD0, або LPRXD
+
+13 - GPIO15 - I2C0_SDA (alt=3)
+14 - GPIO14 - I2C0_SCL (alt=3)
+
+15 - GPIO2, BOOT
+16 - RST, low power is effective
+
+18 - ANT
 
 ## Посилання
 

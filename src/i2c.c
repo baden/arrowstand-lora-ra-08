@@ -5,6 +5,8 @@
 #include "tremo_delay.h"
 #include "tremo_dma.h"
 #include "tremo_dma_handshake.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define OLED_ADDR  0x3C
 static volatile int is_tx_i2c_master_dma_done = 0;
@@ -17,7 +19,179 @@ void tx_i2c_master_dma_irq_handle(void)
     is_tx_i2c_master_dma_done = 1;
 }
 
+
+#define SDA_PIN GPIOA, GPIO_PIN_15
+#define SCL_PIN GPIOA, GPIO_PIN_14
+
+#define SW_I2C_WAIT_TIME    10 // 10us = 100kHz
+#define I2C_READ            0x01
+#define READ_CMD            1
+#define WRITE_CMD           0
+
+#ifndef TRUE
+	#define TRUE 1
+#endif
+#ifndef FALSE
+	#define FALSE 0
+#endif
+
+static void i2c_clk_data_out()
+{
+    gpio_write(SCL_PIN, GPIO_LEVEL_HIGH);
+    delay_us(SW_I2C_WAIT_TIME);
+    gpio_write(SCL_PIN, GPIO_LEVEL_LOW);
+}
+
+static void sda_out(uint8_t out)
+{
+    if(out) {
+        gpio_write(SDA_PIN, GPIO_LEVEL_HIGH);
+    } else {
+        gpio_write(SDA_PIN, GPIO_LEVEL_LOW);
+    }
+}
+
+static void i2c_start_condition()
+{
+    gpio_write(SDA_PIN, GPIO_LEVEL_HIGH);
+    gpio_write(SCL_PIN, GPIO_LEVEL_HIGH);
+    delay_us(SW_I2C_WAIT_TIME);
+    gpio_write(SDA_PIN, GPIO_LEVEL_LOW);
+    delay_us(SW_I2C_WAIT_TIME);
+    gpio_write(SCL_PIN, GPIO_LEVEL_LOW);
+    delay_us(SW_I2C_WAIT_TIME << 1);
+}
+
+static void i2c_stop_condition()
+{
+    gpio_write(SDA_PIN, GPIO_LEVEL_LOW);
+    gpio_write(SCL_PIN, GPIO_LEVEL_HIGH);
+    delay_us(SW_I2C_WAIT_TIME);
+    gpio_write(SDA_PIN, GPIO_LEVEL_HIGH);
+    delay_us(SW_I2C_WAIT_TIME);
+}
+
+static uint8_t SW_I2C_ReadVal_SDA()
+{   
+    // return d->hal_io_ctl(HAL_IO_OPT_GET_SDA_LEVEL, NULL);
+    return gpio_read(SDA_PIN);
+}
+
+static uint8_t i2c_check_ack()
+{
+    uint8_t ack;
+    int i;
+    unsigned int temp;
+    // d->hal_io_ctl(HAL_IO_OPT_SET_SDA_INPUT, NULL);
+    gpio_init(SDA_PIN, GPIO_MODE_INPUT_PULL_UP);
+    delay_us(SW_I2C_WAIT_TIME);
+    gpio_write(SCL_PIN, GPIO_LEVEL_HIGH);
+    ack = 0;
+    delay_us(SW_I2C_WAIT_TIME);
+    for (i = 10; i > 0; i--)
+    {
+        temp = !(SW_I2C_ReadVal_SDA());
+        if (temp)
+        {
+            ack = 1;
+            break;
+        }
+    }
+    gpio_write(SCL_PIN, GPIO_LEVEL_LOW);
+    // d->hal_io_ctl(HAL_IO_OPT_SET_SDA_OUTPUT, NULL);
+    gpio_init(SDA_PIN, GPIO_MODE_OUTPUT_OD_HIZ);
+    delay_us(SW_I2C_WAIT_TIME);
+    return ack;
+}
+
+// static void i2c_check_not_ack()
+// {
+//     // TODO
+//     return 0;
+// }
+
+static void i2c_register_address(uint8_t addr)
+{
+    int x;
+
+    gpio_write(SCL_PIN, GPIO_LEVEL_LOW);
+
+    for (x = 7; x >= 0; x--)
+    {
+        sda_out(addr & (1 << x));
+        delay_us(SW_I2C_WAIT_TIME);
+        i2c_clk_data_out();
+    }
+}
+
+static void i2c_slave_address(uint8_t IICID, uint8_t readwrite)
+{
+    int x;
+
+    if (readwrite) {
+        IICID |= I2C_READ;
+    } else {
+        IICID &= ~I2C_READ;
+    }
+
+    gpio_write(SCL_PIN, GPIO_LEVEL_LOW);
+
+    for (x = 7; x >= 0; x--) {
+        sda_out(IICID & (1 << x));
+        delay_us(SW_I2C_WAIT_TIME);
+        i2c_clk_data_out();
+    }
+}
+
+static void SW_I2C_Write_Data(uint8_t data)
+{
+    int x;
+    gpio_write(SCL_PIN, GPIO_LEVEL_LOW);
+    for (x = 7; x >= 0; x--)
+    {
+        sda_out(data & (1 << x));
+        delay_us(SW_I2C_WAIT_TIME);
+        i2c_clk_data_out();
+    }
+}
+
+uint8_t SW_I2C_Write_8addr(uint8_t IICID, uint8_t regaddr, uint8_t *pdata, uint8_t rcnt)
+{
+    uint8_t returnack = TRUE;
+    uint8_t index;
+    if(!rcnt) return FALSE;
+    i2c_start_condition();
+    i2c_slave_address(IICID, WRITE_CMD);
+    if (!i2c_check_ack()) { returnack = FALSE; }
+    delay_us(SW_I2C_WAIT_TIME);
+    i2c_register_address(regaddr);
+    if (!i2c_check_ack()) { returnack = FALSE; }
+    delay_us(SW_I2C_WAIT_TIME);
+    for ( index = 0 ; index < rcnt ; index++)
+    {
+        SW_I2C_Write_Data(pdata[index]);
+        if (!i2c_check_ack()) { returnack = FALSE; }
+        delay_us(SW_I2C_WAIT_TIME);
+    }
+    i2c_stop_condition();
+    return returnack;    
+}
+
 void I2C_init(void)
+{
+    gpio_write(SDA_PIN, GPIO_LEVEL_HIGH);
+    gpio_write(SCL_PIN, GPIO_LEVEL_HIGH);
+    gpio_init(GPIOA, GPIO_PIN_14, GPIO_MODE_OUTPUT_OD_HIZ);
+    gpio_init(GPIOA, GPIO_PIN_15, GPIO_MODE_OUTPUT_OD_HIZ);
+    gpio_write(SDA_PIN, GPIO_LEVEL_HIGH);
+    gpio_write(SCL_PIN, GPIO_LEVEL_HIGH);
+    delay_ms(1);
+
+    uint8_t data = 1;
+    SW_I2C_Write_8addr(0x3C<<1, 0, &data, sizeof(data));
+}
+
+void I2C_init2(void)
 {
     dma_dev_t dma_dev;
     uint32_t slave_addr = 0x3C;
