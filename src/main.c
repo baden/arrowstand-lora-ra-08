@@ -66,7 +66,7 @@ int main(void)
 
     // OLED_clear();
     // OLED_print(0, 0, "Hello World", 1, 1);
-    // OLED_fill(0xAA);
+    OLED_fill(0xAA);
 
     /* Infinite loop */
     while (1) {
@@ -74,6 +74,7 @@ int main(void)
         printf("Tick: %d\r\n", counter++);
 
         board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
+        OLED_fill(counter);
 
         // gpio_toggle(TEST_GPIOX, TEST_PIN);
     }
