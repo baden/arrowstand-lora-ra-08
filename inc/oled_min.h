@@ -63,6 +63,8 @@ extern "C" {
 #define OLED_SETPRECHARGE 0xD9      // set pre-charge period (following byte)
 #define OLED_SETVCOMDETECT 0xDB     // set VCOMH deselect level (following byte)
 
+#define OLED_NOP    0xE3        // Fill if DMA word align is not worked
+
 // Macros
 #define OLED_xfer_start     I2C_start(OLED_ADDR)
 #define OLED_xfer_stop      I2C_stop

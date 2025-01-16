@@ -5,6 +5,7 @@
 #include "tremo_uart.h"
 #include "board_led.h"
 #include "oled_min.h"
+#include "i2c.h"
 
 // #define TEST_GPIOX GPIOA
 // #define TEST_PIN   GPIO_PIN_9
@@ -56,6 +57,7 @@ static void board_init()
     // RtcInit();
 }
 
+uint32_t __attribute__ ((aligned(4))) OLED_buffer[OLED_WIDTH * OLED_HEIGHT / 8 + 2];
 
 int main(void)
 {
@@ -64,9 +66,19 @@ int main(void)
 
     printf("LoRa RA-08 ArrowStand sensor Start!\r\n");
 
+#if 0
+    // Clear screen buffer
+    OLED_buffer[0] = DMA_START | (OLED_ADDR << 1);
+    OLED_buffer[1] = DMA_DATA  | OLED_DAT_MODE;
+    for(size_t i = 2; i < OLED_WIDTH * OLED_HEIGHT / 8 + 1; i++) {
+        OLED_buffer[1] = DMA_DATA;
+    }
+    OLED_buffer[OLED_WIDTH * OLED_HEIGHT / 8 + 1] = DMA_LAST;
+    I2C_writeDMA(OLED_buffer, OLED_WIDTH * OLED_HEIGHT / 8 + 2);
+#endif
     // OLED_clear();
     // OLED_print(0, 0, "Hello World", 1, 1);
-    OLED_fill(0xAA);
+    // OLED_fill(0xAA);
 
     /* Infinite loop */
     while (1) {
@@ -74,7 +86,15 @@ int main(void)
         printf("Tick: %d\r\n", counter++);
 
         board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
-        OLED_fill(counter);
+
+        #if 0
+        // OLED_fill(counter);
+        // OLED_draw_buffer();
+        OLED_buffer[0] = OLED_DAT_MODE;
+        OLED_buffer[1] = counter & 0xFF;
+        OLED_buffer[2] = (counter >> 8) & 0xFF;
+        I2C_writeBuf(OLED_ADDR, OLED_buffer, sizeof(OLED_buffer));
+        #endif
 
         // gpio_toggle(TEST_GPIOX, TEST_PIN);
     }

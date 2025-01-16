@@ -63,34 +63,41 @@
 
 
 // OLED initialisation sequence
-const uint8_t OLED_INIT_CMD[] = {
-  OLED_DISPLAY_OFF,
-  OLED_CLOCKDIV,    0x80,           // set clock divide ratio
-  OLED_MULTIPLEX,   OLED_HEIGHT-1,       // set multiplex ratio (HEIGHT-1)
-  OLED_OFFSET, 0x00,                // set display offset
-  OLED_STARTLINE | 0x00,            // set display start line
-  OLED_CHARGEPUMP, 0x14,            // set DC-DC enable (0x10-external VCC, 0x14 - internal DC-DC)
-  OLED_MEMORYMODE, 0x00,            // set horizontal addressing mode
-  OLED_XFLIP, OLED_YFLIP,           // flip screen
+const uint32_t /*uint8_t*/ OLED_INIT_CMD[] = {
+  DMA_START | (OLED_ADDR << 1),
+  DMA_DATA  | OLED_CMD_MODE,
 
-  OLED_COMPINS, comPins,
-  OLED_CONTRAST, contrast,
-  OLED_SETPRECHARGE, ((vccstate == SSD1306_EXTERNALVCC) ? 0x22 : 0xF1),
-  OLED_SETVCOMDETECT, 0x40,
-  OLED_DISPLAYALLON_RESUME,
-  OLED_INVERT_OFF,
-  OLED_SCROLL_OFF,
-  OLED_DISPLAY_ON,                 // display on
+  DMA_DATA  | OLED_DISPLAY_OFF,
+  DMA_DATA  | OLED_CLOCKDIV,    DMA_DATA  | 0x80,           // set clock divide ratio
+  DMA_DATA  | OLED_MULTIPLEX,   DMA_DATA  | (OLED_HEIGHT-1),       // set multiplex ratio (HEIGHT-1)
+  DMA_DATA  | OLED_OFFSET, DMA_DATA  | 0x00,                // set display offset
+  DMA_DATA  | OLED_STARTLINE | 0x00,            // set display start line
+  DMA_DATA  | OLED_CHARGEPUMP, DMA_DATA  | 0x14,            // set DC-DC enable (0x10-external VCC, 0x14 - internal DC-DC)
+  DMA_DATA  | OLED_MEMORYMODE, DMA_DATA  | 0x00,            // set horizontal addressing mode
+  DMA_DATA  | OLED_XFLIP, DMA_DATA  | OLED_YFLIP,           // flip screen
+
+  DMA_DATA  | OLED_COMPINS, DMA_DATA  | comPins,
+  DMA_DATA  | OLED_CONTRAST, DMA_DATA  | contrast,
+  DMA_DATA  | OLED_SETPRECHARGE, DMA_DATA  | ((vccstate == SSD1306_EXTERNALVCC) ? 0x22 : 0xF1),
+  DMA_DATA  | OLED_SETVCOMDETECT, DMA_DATA  | 0x40,
+  DMA_DATA  | OLED_DISPLAYALLON_RESUME,
+  DMA_DATA  | OLED_INVERT_OFF,
+  DMA_DATA  | OLED_SCROLL_OFF,
+  DMA_LAST  | OLED_DISPLAY_ON,                 // display on
 };
+
 
 
 // OLED init function
 void OLED_init(void) {
-  uint8_t i;
+  // uint8_t i;
   I2C_init();                             // initialize I2C first
+
+  I2C_writeDMA(OLED_INIT_CMD, sizeof(OLED_INIT_CMD) / sizeof(OLED_INIT_CMD[0]));
+  #if 0
   // goto end;
   I2C_start(OLED_ADDR);                   // start transmission to OLED
-  I2C_write(OLED_CMD_MODE);               // set command mode
+  // I2C_write(OLED_CMD_MODE);               // set command mode
   for(i = 0; i < sizeof(OLED_INIT_CMD); i++)
     I2C_write(OLED_INIT_CMD[i]);          // send the command bytes
 
@@ -123,6 +130,7 @@ void OLED_init(void) {
 
   I2C_stop();                             // stop transmission
 end:
+#endif
 }
 
 // Start sending data
@@ -176,3 +184,11 @@ void OLED_draw_bmp(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t
     I2C_stop();
   }
 }
+
+
+// void OLED_draw_buffer(uint8_t* buffer, size_t buffer_size)
+// {
+//   // I2C_start(OLED_ADDR);                           // start transmission to OLED
+//   // I2C_write(OLED_DAT_MODE);                       // set command mode
+//   I2C_writeBuffer(buffer, buffer_size); // send screen buffer using DMA
+// }
