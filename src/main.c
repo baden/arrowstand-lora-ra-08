@@ -71,12 +71,12 @@ int main(void)
 
     /* Infinite loop */
     while (1) {
-        delay_ms(1000);
+        delay_ms(10);
         printf("Tick: %d\r\n", counter++);
 
         board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
 
-        snprintf(buf, sizeof(buf), "C:%d", counter);
+        snprintf(buf, sizeof(buf), "S:%d", counter);
         // OLED_setpos(0, 0);
         // OLED_print(buf);
 

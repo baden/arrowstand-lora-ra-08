@@ -18,7 +18,7 @@ CFLAGS  += -I inc -I platform/CMSIS -I platform/common -I platform/system -I dri
 CFLAGS  += -DCONFIG_DEBUG_UART=UART0
 
 LDFLAGS := -mcpu=cortex-m4 -mthumb -mthumb-interwork
-LDFLAGS += -Wl,--gc-sections -Wl,--wrap=printf -Wl,--wrap=sprintf -Wl,--wrap=snprintf
+LDFLAGS += -Wl,--gc-sections -Wl,--wrap=printf -Wl,--wrap=sprintf -Wl,--wrap=snprintf -Wl,--print-memory-usage
 
 LINK_LD := cfg/gcc.ld
 
