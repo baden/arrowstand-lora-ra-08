@@ -27,7 +27,7 @@ void I2C_init(void)
 #if defined(I2C_OVER_DMA)
     config.fifo_mode_en = true;
 #endif
-    config.settings.master.speed = I2C_CR_BUS_MODE_FAST;
+    // config.settings.master.speed = I2C_CR_BUS_MODE_FAST;
     i2c_init(I2C0, &config);
     i2c_cmd(I2C0, true);
 }

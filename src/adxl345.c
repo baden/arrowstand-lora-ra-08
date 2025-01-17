@@ -233,5 +233,5 @@ static uint8_t getInterruptSource() {
 
 bool adxl345_is_active()
 {
-    return getInterruptSource() & (1<< ADXL345_INT_DATA_READY_BIT);
+    return getInterruptSource() & (1<< ADXL345_INT_ACTIVITY_BIT);
 }
