@@ -6,6 +6,7 @@
 #include "board_led.h"
 #include "oled_min.h"
 #include "i2c.h"
+#include "adxl345.h"
 
 // #define TEST_GPIOX GPIOA
 // #define TEST_PIN   GPIO_PIN_9
@@ -54,13 +55,18 @@ static void board_init()
     OLED_init();
     // oled_init();
 
+    adxl345_init(30);
+
     // RtcInit();
 }
+
+#include "boom.h"
 
 int main(void)
 {
     static unsigned counter = 0;
     char buf[32];
+    static unsigned trigged = 0;
     board_init();
 
     printf("LoRa RA-08 ArrowStand sensor Start!\r\n");
@@ -71,12 +77,19 @@ int main(void)
 
     /* Infinite loop */
     while (1) {
-        delay_ms(10);
+        delay_ms(50);
         printf("Tick: %d\r\n", counter++);
 
+        if(adxl345_is_active()) {
+            trigged = 50;
+        }
+
+        if(trigged) {
+            trigged--;
+        }
         board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
 
-        snprintf(buf, sizeof(buf), "S:%d", counter);
+        snprintf(buf, sizeof(buf), "%s:%d", (trigged)?"*":"0", counter);
         // OLED_setpos(0, 0);
         // OLED_print(buf);
 
@@ -85,6 +98,8 @@ int main(void)
         // OLED_plotChar('A');
 
         OLED_prints(0, 0, buf);
+
+        // OLED_draw_bmp(0,0,32,4,boom);
 
         // OLED_draw_bmp(0, 0, uint8_t x1, uint8_t y1, const uint8_t* bmp);
         #if 0
