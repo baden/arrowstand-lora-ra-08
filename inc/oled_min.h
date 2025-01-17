@@ -80,6 +80,7 @@ void OLED_fill(uint8_t p);
 void OLED_draw_bmp(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* bmp);
 void OLED_plotChar(char c);
 void OLED_print(char* str);
+void OLED_prints(uint8_t x, uint8_t y, char* str);
 
 #ifdef __cplusplus
 };

@@ -77,9 +77,14 @@ int main(void)
         board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
 
         snprintf(buf, sizeof(buf), "C:%d", counter);
-        OLED_setpos(0, 0);
-        OLED_print(buf);
+        // OLED_setpos(0, 0);
+        // OLED_print(buf);
+
+        // OLED_setpos(0, 1);
+        // OLED_print(buf);
         // OLED_plotChar('A');
+
+        OLED_prints(0, 0, buf);
 
         // OLED_draw_bmp(0, 0, uint8_t x1, uint8_t y1, const uint8_t* bmp);
         #if 0
