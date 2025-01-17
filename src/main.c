@@ -57,28 +57,17 @@ static void board_init()
     // RtcInit();
 }
 
-uint32_t __attribute__ ((aligned(4))) OLED_buffer[OLED_WIDTH * OLED_HEIGHT / 8 + 2];
-
 int main(void)
 {
     static unsigned counter = 0;
+    char buf[32];
     board_init();
 
     printf("LoRa RA-08 ArrowStand sensor Start!\r\n");
 
-#if 0
-    // Clear screen buffer
-    OLED_buffer[0] = DMA_START | (OLED_ADDR << 1);
-    OLED_buffer[1] = DMA_DATA  | OLED_DAT_MODE;
-    for(size_t i = 2; i < OLED_WIDTH * OLED_HEIGHT / 8 + 1; i++) {
-        OLED_buffer[1] = DMA_DATA;
-    }
-    OLED_buffer[OLED_WIDTH * OLED_HEIGHT / 8 + 1] = DMA_LAST;
-    I2C_writeDMA(OLED_buffer, OLED_WIDTH * OLED_HEIGHT / 8 + 2);
-#endif
     // OLED_clear();
     // OLED_print(0, 0, "Hello World", 1, 1);
-    // OLED_fill(0xAA);
+    OLED_fill(0);
 
     /* Infinite loop */
     while (1) {
@@ -87,13 +76,14 @@ int main(void)
 
         board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
 
+        snprintf(buf, sizeof(buf), "C:%d", counter);
+        OLED_setpos(0, 0);
+        OLED_print(buf);
+        // OLED_plotChar('A');
+
+        // OLED_draw_bmp(0, 0, uint8_t x1, uint8_t y1, const uint8_t* bmp);
         #if 0
-        // OLED_fill(counter);
-        // OLED_draw_buffer();
-        OLED_buffer[0] = OLED_DAT_MODE;
-        OLED_buffer[1] = counter & 0xFF;
-        OLED_buffer[2] = (counter >> 8) & 0xFF;
-        I2C_writeBuf(OLED_ADDR, OLED_buffer, sizeof(OLED_buffer));
+        OLED_fill(counter);
         #endif
 
         // gpio_toggle(TEST_GPIOX, TEST_PIN);

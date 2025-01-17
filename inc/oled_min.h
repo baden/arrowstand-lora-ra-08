@@ -63,8 +63,6 @@ extern "C" {
 #define OLED_SETPRECHARGE 0xD9      // set pre-charge period (following byte)
 #define OLED_SETVCOMDETECT 0xDB     // set VCOMH deselect level (following byte)
 
-#define OLED_NOP    0xE3        // Fill if DMA word align is not worked
-
 // Macros
 #define OLED_xfer_start     I2C_start(OLED_ADDR)
 #define OLED_xfer_stop      I2C_stop
@@ -80,6 +78,8 @@ void OLED_send_command(uint8_t cmd);
 void OLED_setpos(uint8_t x, uint8_t y);
 void OLED_fill(uint8_t p);
 void OLED_draw_bmp(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* bmp);
+void OLED_plotChar(char c);
+void OLED_print(char* str);
 
 #ifdef __cplusplus
 };
