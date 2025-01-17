@@ -48,7 +48,7 @@ PORT=/dev/ttyUSB0 make flash
 
 
 2 - GPIO8/ADC_IN1
-3 - GPIO11/ADC_IN0
+3 - GPIO11/ADC_IN0          (вхід INT1 від акселерометра. PORTA_11, Просинання з глубокого сну.)
 
 4 - GPIO9/DAC_OUT - Toggle each 1 sec
 

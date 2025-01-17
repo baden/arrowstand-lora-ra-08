@@ -85,7 +85,6 @@ const uint8_t OLED_INIT_CMD[] = {
 
 // OLED init function
 void OLED_init(void) {
-  I2C_init();                             // initialize I2C first
 
   // goto end;
   I2C_start(OLED_ADDR);                   // start transmission to OLED
