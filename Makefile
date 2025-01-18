@@ -8,17 +8,23 @@ SOURCES := $(wildcard src/*.c) \
 	platform/system/system_cm4.c  \
 	platform/system/startup_cm4.S \
 	platform/system/printf-stdarg.c \
-	$(wildcard drivers/peripheral/src/*.c) 
-
+	$(wildcard drivers/peripheral/src/*.c) \
+    $(wildcard lora/system/*.c)  \
+    $(wildcard lora/system/crypto/*.c)  \
+    $(wildcard lora/radio/sx126x/*.c)  \
+    $(wildcard lora/driver/*.c)
 
 CFLAGS  := -mcpu=cortex-m4 -mthumb
 CFLAGS  += -Wall -Os -ffunction-sections -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fsingle-precision-constant
 CFLAGS  += -std=gnu99 -fno-builtin-printf -fno-builtin-sprintf -fno-builtin-snprintf
 CFLAGS  += -I inc -I platform/CMSIS -I platform/common -I platform/system -I drivers/peripheral/inc
+CFLAGS  += -I drivers/crypto/inc -I lora/driver -I lora/system -I lora/radio -I lora/radio/sx126x
 CFLAGS  += -DCONFIG_DEBUG_UART=UART0
 
 LDFLAGS := -mcpu=cortex-m4 -mthumb -mthumb-interwork
 LDFLAGS += -Wl,--gc-sections -Wl,--wrap=printf -Wl,--wrap=sprintf -Wl,--wrap=snprintf -Wl,--print-memory-usage
+
+LIBS := drivers/crypto/lib/libcrypto.a
 
 LINK_LD := cfg/gcc.ld
 
@@ -40,7 +46,7 @@ $(BUILD_DIR)/%.o: %.S
 	@$(CC) -c -mcpu=cortex-m4 -mthumb $< -o $@
 
 $(BUILD_DIR)/$(PROJECT).elf: $(C_O_FILES) $(S_O_FILES)
-	@$(CC) $(LDFLAGS) -Wl,-Map=$(BUILD_DIR)/$(PROJECT).map -T$(LINK_LD) -o $@ $(C_O_FILES) $(S_O_FILES)
+	@$(CC) $(LDFLAGS) -Wl,-Map=$(BUILD_DIR)/$(PROJECT).map -T$(LINK_LD) -o $@ $(C_O_FILES) $(S_O_FILES) $(LIBS)
 
 $(BUILD_DIR)/$(PROJECT).bin: $(BUILD_DIR)/$(PROJECT).elf
 	@$(OBJCOPY) -O binary -R .eh_frame -R .init -R .fini -R .comment -R .ARM.attributes $< $@

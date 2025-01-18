@@ -7,6 +7,10 @@
 #include "oled_min.h"
 #include "i2c.h"
 #include "adxl345.h"
+#include "lora.h"
+
+gpio_t*  g_test_gpiox = GPIOA;
+uint32_t g_test_pin   = GPIO_PIN_11;
 
 // #define TEST_GPIOX GPIOA
 // #define TEST_PIN   GPIO_PIN_9
@@ -53,6 +57,7 @@ static void board_init()
     // pwr_xo32k_lpm_cmd(true);
 
     uart_log_init();
+    lora_init();
 
     board_led_init();
 

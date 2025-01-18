@@ -106,3 +106,22 @@ void PWR_IRQHandler()
 /*void PPP_IRQHandler(void)
 {
 }*/
+
+#include <stdint.h>
+#include "tremo_gpio.h"
+
+extern gpio_t *g_test_gpiox;
+extern uint8_t g_test_pin;
+extern void RadioOnDioIrq(void);
+
+void LORA_IRQHandler()
+{
+    RadioOnDioIrq();
+}
+
+void GPIO_IRQHandler(void)
+{
+    if (gpio_get_interrupt_status(g_test_gpiox, g_test_pin) == SET) {
+        gpio_clear_interrupt(g_test_gpiox, g_test_pin);
+    }
+}
