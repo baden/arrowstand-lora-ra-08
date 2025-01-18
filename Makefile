@@ -4,7 +4,10 @@ PROJECT := lora-ra-08
 
 BUILD_DIR := build
 
-SOURCES := $(wildcard src/*.c) \
+EXCLUDES := src/main_TX.c src/main_RX.c
+
+SOURCES := $(filter-out $(EXCLUDES),$(wildcard src/*.c)) \
+	src/main_$(ROLE).c \
 	platform/system/system_cm4.c  \
 	platform/system/startup_cm4.S \
 	platform/system/printf-stdarg.c \

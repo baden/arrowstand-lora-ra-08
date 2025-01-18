@@ -125,6 +125,17 @@ void RTC_IRQHandler(void)
     RtcOnIrq();
 }
 
+/**
+ * @brief  This function handles TIMER0 Handler.
+ * @param  None
+ * @retval None
+ */
+void gptim0_IRQHandler(void);
+void TIMER0_IRQHandler(void)
+{
+    gptim0_IRQHandler();
+}
+
 // void GPIO_IRQHandler(void)
 // {
 //     if (gpio_get_interrupt_status(g_test_gpiox, g_test_pin) == SET) {
