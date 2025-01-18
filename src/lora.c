@@ -172,8 +172,8 @@ void OnTxTimeout( void )
 
 void OnRxTimeout( void )
 {
-    // printf("OnRxTimeout\r\n");
-    // Radio.Sleep( );
+    printf("OnRxTimeout\r\n");
+    Radio.Sleep( );
     State = RX_TIMEOUT;
 }
 

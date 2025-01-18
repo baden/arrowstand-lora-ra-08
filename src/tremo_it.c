@@ -113,10 +113,16 @@ void PWR_IRQHandler()
 // extern gpio_t *g_test_gpiox;
 // extern uint8_t g_test_pin;
 extern void RadioOnDioIrq(void);
+extern void RtcOnIrq(void);
 
 void LORA_IRQHandler()
 {
     RadioOnDioIrq();
+}
+
+void RTC_IRQHandler(void)
+{
+    RtcOnIrq();
 }
 
 // void GPIO_IRQHandler(void)
