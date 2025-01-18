@@ -19,7 +19,7 @@ CFLAGS  += -Wall -Os -ffunction-sections -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -f
 CFLAGS  += -std=gnu99 -fno-builtin-printf -fno-builtin-sprintf -fno-builtin-snprintf
 CFLAGS  += -I inc -I platform/CMSIS -I platform/common -I platform/system -I drivers/peripheral/inc
 CFLAGS  += -I drivers/crypto/inc -I lora/driver -I lora/system -I lora/radio -I lora/radio/sx126x
-CFLAGS  += -DCONFIG_DEBUG_UART=UART0
+CFLAGS  += -DCONFIG_DEBUG_UART=UART0 -DUSE_MODEM_LORA -DREGION_EU433
 
 LDFLAGS := -mcpu=cortex-m4 -mthumb -mthumb-interwork
 LDFLAGS += -Wl,--gc-sections -Wl,--wrap=printf -Wl,--wrap=sprintf -Wl,--wrap=snprintf -Wl,--print-memory-usage

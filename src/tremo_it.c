@@ -119,9 +119,9 @@ void LORA_IRQHandler()
     RadioOnDioIrq();
 }
 
-void GPIO_IRQHandler(void)
-{
-    if (gpio_get_interrupt_status(g_test_gpiox, g_test_pin) == SET) {
-        gpio_clear_interrupt(g_test_gpiox, g_test_pin);
-    }
-}
+// void GPIO_IRQHandler(void)
+// {
+//     if (gpio_get_interrupt_status(g_test_gpiox, g_test_pin) == SET) {
+//         gpio_clear_interrupt(g_test_gpiox, g_test_pin);
+//     }
+// }

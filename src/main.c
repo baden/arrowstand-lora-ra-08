@@ -9,14 +9,14 @@
 #include "adxl345.h"
 #include "lora.h"
 
-gpio_t*  g_test_gpiox = GPIOA;
-uint32_t g_test_pin   = GPIO_PIN_11;
+// gpio_t*  g_test_gpiox = GPIOA;
+// uint32_t g_test_pin   = GPIO_PIN_11;
 
 // #define TEST_GPIOX GPIOA
 // #define TEST_PIN   GPIO_PIN_9
 
-#define USE_OLED
-// #define USE_ACCEL
+#define USE_ACCEL           // Передавач
+// #define USE_OLED         // Приймач
 
 static void uart_log_init(void)
 {
@@ -98,21 +98,24 @@ int main(void)
         OLED_fill(0);
     #endif
 
-    board_led_rgb(0, 0, 0);
+    board_led_rgb(0, 1, 0);
 
     /* Infinite loop */
     while (1) {
-        delay_ms(50);
-        printf("Tick: %d\r\n", counter++);
+        lora_loop();
+
+        delay_ms(100);
+        // printf("Tick: %d\r\n", counter++);
 
         #ifdef USE_ACCEL
             if(adxl345_is_active()) {
-                trigged = 50;
+                trigged = 30;
             }
 
             if(trigged) {
                 trigged--;
                 board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
+                counter++;
                 if(trigged == 0) board_led_rgb(0, 0, 0);
             }
         #endif
