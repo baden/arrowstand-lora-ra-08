@@ -8,6 +8,9 @@
 #include "i2c.h"
 #include "adxl345.h"
 #include "lora.h"
+#include "init.h"
+#include "role.h"
+#include "radio.h"
 
 // gpio_t*  g_test_gpiox = GPIOA;
 // uint32_t g_test_pin   = GPIO_PIN_11;
@@ -15,48 +18,11 @@
 // #define TEST_GPIOX GPIOA
 // #define TEST_PIN   GPIO_PIN_9
 
-#define USE_ACCEL           // Передавач
-// #define USE_OLED         // Приймач
 
-static void uart_log_init(void)
+
+static void init()
 {
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_UART0, true);
-
-    // uart0
-    gpio_set_iomux(GPIOB, GPIO_PIN_0, 1);
-    gpio_set_iomux(GPIOB, GPIO_PIN_1, 1);
-
-    /* uart config struct init */
-    uart_config_t uart_config;
-    uart_config_init(&uart_config);
-
-    uart_config.baudrate = UART_BAUDRATE_115200;
-    uart_init(CONFIG_DEBUG_UART, &uart_config);
-    uart_cmd(CONFIG_DEBUG_UART, ENABLE);
-}
-
-static void board_init()
-{
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOA, true);
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOB, true);
-    
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_SYSCFG, true);     // (З прикладу I2C master dma, треба глянути для чого це)
-    // gpio_init(TEST_GPIOX, TEST_PIN, GPIO_MODE_OUTPUT_PP_HIGH);
-    // rcc_enable_oscillator(RCC_OSC_XO32K, true);
-
-    // LOG
-    // rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOA, true);
-    // rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOC, true);
-    // rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOD, true);
-    // rcc_enable_peripheral_clk(RCC_PERIPHERAL_PWR, true);
-    // rcc_enable_peripheral_clk(RCC_PERIPHERAL_RTC, true);
-    // rcc_enable_peripheral_clk(RCC_PERIPHERAL_SAC, true);
-    // rcc_enable_peripheral_clk(RCC_PERIPHERAL_LORA, true);
-
-    // delay_ms(100);
-    // pwr_xo32k_lpm_cmd(true);
-
-    uart_log_init();
+    board_init();
     lora_init();
 
     board_led_init();
@@ -71,11 +37,7 @@ static void board_init()
     #ifdef USE_ACCEL
         adxl345_init(22);
     #endif
-
-    // RtcInit();
 }
-
-#include "boom.h"
 
 int main(void)
 {
@@ -88,23 +50,25 @@ int main(void)
         static unsigned trigged = 0;
     #endif
 
-    board_init();
+    init();
 
     printf("LoRa RA-08 ArrowStand sensor Start!\r\n");
 
-    // OLED_clear();
-    // OLED_print(0, 0, "Hello World", 1, 1);
     #ifdef USE_OLED
-        OLED_fill(0);
+        OLED_fill(0x00);
     #endif
 
     board_led_rgb(0, 1, 0);
+
+    #if ROLE==ROLE_RX
+    Radio.Rx( RX_TIMEOUT_VALUE );
+    #endif
 
     /* Infinite loop */
     while (1) {
         lora_loop();
 
-        delay_ms(100);
+        // delay_ms(100);
         // printf("Tick: %d\r\n", counter++);
 
         #ifdef USE_ACCEL
@@ -123,9 +87,9 @@ int main(void)
 
         #ifdef USE_OLED
             #ifdef USE_ACCEL
-                snprintf(buf, sizeof(buf), "%s:%d", (trigged)?"*":"0", counter);
+                snprintf(buf, sizeof(buf), "%s:%d", (trigged)?"*":"0", counter++);
             #else
-                snprintf(buf, sizeof(buf), "%d", counter);
+                snprintf(buf, sizeof(buf), "%d", counter++);
             #endif
             // OLED_setpos(0, 0);
             // OLED_print(buf);

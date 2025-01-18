@@ -1,3 +1,4 @@
+#include "lora.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -26,7 +27,6 @@ typedef enum
     TX_TIMEOUT
 } States_t;
 
-#define RX_TIMEOUT_VALUE                            1800
 #define BUFFER_SIZE                                 5 // Define the payload size here
 
 const uint8_t PingMsg[] = "PING";
@@ -74,20 +74,6 @@ void OnRxError( void );
 
 void lora_init()
 {
-    // TODO: Можливо тут не місце для цього
-    rcc_enable_oscillator(RCC_OSC_XO32K, true);
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOC, true);
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOD, true);
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_PWR, true);
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_RTC, true);
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_SAC, true);    // WTF is this?
-    rcc_enable_peripheral_clk(RCC_PERIPHERAL_LORA, true);
-
-    delay_ms(100);
-    pwr_xo32k_lpm_cmd(true);
-    RtcInit();
-
-
     (void)system_get_chip_id(ChipId);
     printf("LoRa ID: 0x%08lx%08lx!\r\n", ChipId[0], ChipId[1]);
 
@@ -112,7 +98,7 @@ void lora_init()
                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
                                    0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
 
-    Radio.Rx( RX_TIMEOUT_VALUE );
+    // Radio.Rx( RX_TIMEOUT_VALUE );
 
 }
 
@@ -158,39 +144,42 @@ void lora_loop()
 
 void OnTxDone( void )
 {
-    printf("OnTxDone\r\n");
+    // printf("OnTxDone\r\n");
     Radio.Sleep();
     State = TX;
 }
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
-    printf("OnRxDone\r\n");
+    // printf("OnRxDone\r\n");
     Radio.Sleep( );
+
+/*
     BufferSize = size;
     memcpy( Buffer, payload, BufferSize );
     RssiValue = rssi;
     SnrValue = snr;
+*/
     State = RX;
 }
 
 void OnTxTimeout( void )
 {
-    printf("OnTxTimeout\r\n");
+    // printf("OnTxTimeout\r\n");
     Radio.Sleep();
     State = TX_TIMEOUT;
 }
 
 void OnRxTimeout( void )
 {
-    printf("OnRxTimeout\r\n");
-    Radio.Sleep( );
+    // printf("OnRxTimeout\r\n");
+    // Radio.Sleep( );
     State = RX_TIMEOUT;
 }
 
 void OnRxError( void )
 {
-    printf("OnRxError\r\n");
+    // printf("OnRxError\r\n");
     Radio.Sleep( );
     State = RX_ERROR;
 }

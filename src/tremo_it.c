@@ -110,8 +110,8 @@ void PWR_IRQHandler()
 #include <stdint.h>
 #include "tremo_gpio.h"
 
-extern gpio_t *g_test_gpiox;
-extern uint8_t g_test_pin;
+// extern gpio_t *g_test_gpiox;
+// extern uint8_t g_test_pin;
 extern void RadioOnDioIrq(void);
 
 void LORA_IRQHandler()

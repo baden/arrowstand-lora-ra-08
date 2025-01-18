@@ -30,7 +30,8 @@ python3 -m pip install pyserial configparser
 Збираємо.
 
 ```bash
-make
+ROLE=TX make
+ROLE=RX make
 ```
 
 Прошиваємо

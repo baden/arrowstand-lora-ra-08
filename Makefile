@@ -19,7 +19,7 @@ CFLAGS  += -Wall -Os -ffunction-sections -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -f
 CFLAGS  += -std=gnu99 -fno-builtin-printf -fno-builtin-sprintf -fno-builtin-snprintf
 CFLAGS  += -I inc -I platform/CMSIS -I platform/common -I platform/system -I drivers/peripheral/inc
 CFLAGS  += -I drivers/crypto/inc -I lora/driver -I lora/system -I lora/radio -I lora/radio/sx126x
-CFLAGS  += -DCONFIG_DEBUG_UART=UART0 -DUSE_MODEM_LORA -DREGION_EU433
+CFLAGS  += -DROLE=ROLE_$(ROLE) -DCONFIG_DEBUG_UART=UART0 -DUSE_MODEM_LORA -DREGION_EU433
 
 LDFLAGS := -mcpu=cortex-m4 -mthumb -mthumb-interwork
 LDFLAGS += -Wl,--gc-sections -Wl,--wrap=printf -Wl,--wrap=sprintf -Wl,--wrap=snprintf -Wl,--print-memory-usage
@@ -45,18 +45,18 @@ $(BUILD_DIR)/%.o: %.S
 	@mkdir -p $(dir $@)
 	@$(CC) -c -mcpu=cortex-m4 -mthumb $< -o $@
 
-$(BUILD_DIR)/$(PROJECT).elf: $(C_O_FILES) $(S_O_FILES)
-	@$(CC) $(LDFLAGS) -Wl,-Map=$(BUILD_DIR)/$(PROJECT).map -T$(LINK_LD) -o $@ $(C_O_FILES) $(S_O_FILES) $(LIBS)
+$(BUILD_DIR)/$(PROJECT)-$(ROLE).elf: $(C_O_FILES) $(S_O_FILES)
+	@$(CC) $(LDFLAGS) -Wl,-Map=$(BUILD_DIR)/$(PROJECT)-$(ROLE).map -T$(LINK_LD) -o $@ $(C_O_FILES) $(S_O_FILES) $(LIBS)
 
-$(BUILD_DIR)/$(PROJECT).bin: $(BUILD_DIR)/$(PROJECT).elf
+$(BUILD_DIR)/$(PROJECT)-$(ROLE).bin: $(BUILD_DIR)/$(PROJECT)-$(ROLE).elf
 	@$(OBJCOPY) -O binary -R .eh_frame -R .init -R .fini -R .comment -R .ARM.attributes $< $@
 
-all: $(BUILD_DIR)/$(PROJECT).bin
+all: $(BUILD_DIR)/$(PROJECT)-$(ROLE).bin
 
-flash: $(BUILD_DIR)/$(PROJECT).bin
+flash: $(BUILD_DIR)/$(PROJECT)-$(ROLE).bin
 	python3 scripts/tremo_loader.py -p ${PORT} -b 921600 flash 0x08000000 $<
 
-flash1: $(BUILD_DIR)/$(PROJECT).bin
+flash1: $(BUILD_DIR)/$(PROJECT)-$(ROLE).bin
 	python3 scripts/tremo_loader.py -p ${PORT} -b 115200 flash 0x08000000 $<
 
 clean:
