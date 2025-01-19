@@ -79,6 +79,11 @@ PORT=/dev/ttyUSB0 make flash
 [MUX table](https://drive.google.com/drive/folders/1ph9s0ZU6HYJ4AYP4xbFndDFbg8pSCYrn)
 
 
+Мені здається, чи в середені якийсь SX1261, SX1262 aбо SX1268?
+Бо код схож на це:
+https://github.com/beegee-tokyo/SX126x-Arduino
+
+
 ## Проба №1
 
 По https://github.com/Ai-Thinker-Open/Ai-Thinker-LoRaWAN-Ra-08 пройшов. З умови деяких дрібних поправок, приклади зібрались та запустились.

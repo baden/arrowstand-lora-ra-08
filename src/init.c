@@ -49,4 +49,5 @@ void board_init()
 #if defined(CONFIG_DEBUG_UART)
     uart_log_init();
 #endif
+
 }

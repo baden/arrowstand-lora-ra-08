@@ -19,7 +19,13 @@
 // #define TEST_GPIOX GPIOA
 // #define TEST_PIN   GPIO_PIN_9
 
+// gpio_t *g_test_gpiox = GPIOA;
+// uint8_t g_test_pin = GPIO_PIN_11;
+// volatile uint32_t g_gpio_interrupt_flag = 0;
+
 static void gptimer_simple_timer(timer_gp_t* TIMERx);
+
+static uint8_t sencitive = 22;
 
 static void init()
 {
@@ -27,7 +33,17 @@ static void init()
     lora_init();
     board_led_init();
     I2C_init();                             // initialize I2C first
-    adxl345_init(22);
+
+    adxl345_init(sencitive);
+    gpio_init(GPIOA, GPIO_PIN_11, GPIO_MODE_INPUT_PULL_UP);
+    gpio_config_interrupt(GPIOA, GPIO_PIN_11, GPIO_INTR_FALLING_EDGE);
+    /* NVIC config */
+    NVIC_EnableIRQ(GPIO_IRQn);
+    NVIC_SetPriority(GPIO_IRQn, 2);
+
+    // Задіємо кнопку BOOT для керування режимами роботи
+    gpio_init(GPIOA, GPIO_PIN_2, GPIO_MODE_INPUT_PULL_DOWN);
+    gpio_config_interrupt(GPIOA, GPIO_PIN_2, GPIO_INTR_RISING_EDGE);
 
     gptimer_simple_timer(TIMER0);
     NVIC_EnableIRQ(TIMER0_IRQn);
@@ -70,6 +86,18 @@ volatile States_t State = LOWPOWER;
 uint16_t BufferSize = BUFFER_SIZE;
 uint8_t Buffer[BUFFER_SIZE];
 
+static volatile bool activity_trigged = false;
+static volatile bool boot_trigged = false;
+
+volatile bool tx_in_progress = false;
+
+enum mode {
+    MODE_SENSOR = 0,
+    MODE_TESTER = 1
+};
+
+enum mode mode = MODE_SENSOR;
+
 int main(void)
 {
     static unsigned counter = 0;
@@ -89,74 +117,105 @@ int main(void)
 
     /* Infinite loop */
     while (1) {
-        // lora_loop();
 
-        // delay_ms(100);
-        // printf("Tick: %d\r\n", counter++);
 
-        if(adxl345_is_active()) {
-            trigged = 30;
+        if(boot_trigged) {
+            boot_trigged = false;
 
-                Buffer[0] = 'P';
-                Buffer[1] = 'I';
-                Buffer[2] = 'N';
-                Buffer[3] = 'G';
-                for( unsigned i = 4; i < BufferSize; i++ )
-                {
-                    Buffer[i] = i - 4;
+            mode = (mode==MODE_SENSOR) ? MODE_TESTER : MODE_SENSOR;
+        }
+
+        switch (mode)
+        {
+        case MODE_SENSOR:
+            /* code */
+            if(activity_trigged || (gpio_read(GPIOA, GPIO_PIN_11) == GPIO_LEVEL_LOW)) {
+                adxl345_is_active();    // Clear INT flag
+                activity_trigged = false;
+                trigged = 30;
+
+                if(!tx_in_progress) {
+                    tx_in_progress = true;
+                    Buffer[0] = 'P';
+                    Buffer[1] = 'I';
+                    Buffer[2] = 'N';
+                    Buffer[3] = 'G';
+                    Buffer[4] = sencitive;
+                    // srand( *ChipId );
+                    // uint8_t random = ( rand() + 1 ) % 90;
+                    // DelayMs( random );
+                    Radio.Send( Buffer, BufferSize );
+                    printf("Sent: PING\r\n");
                 }
-                // srand( *ChipId );
-                // uint8_t random = ( rand() + 1 ) % 90;
-                // DelayMs( random );
-                Radio.Send( Buffer, BufferSize );
-                printf("Sent: PING\r\n");
+            }
 
+            if(trigged) {
+                trigged--;
+                board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
+                counter++;
+                if(trigged == 0) board_led_rgb(0, 0, 0);
+    
+            }
+            break;
+        
+        case MODE_TESTER:
+            if(tick) {
+                tick--;
+
+                if(!tx_in_progress) {
+                    tx_in_progress = true;
+                    Buffer[0] = 'P';
+                    Buffer[1] = 'I';
+                    Buffer[2] = 'N';
+                    Buffer[3] = 'G';
+                    Buffer[4] = counter++;
+                    // srand( *ChipId );
+                    // uint8_t random = ( rand() + 1 ) % 90;
+                    // DelayMs( random );
+                    Radio.Send( Buffer, BufferSize );
+                    printf("Sent: PING\r\n");
+                }
+
+                board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
+            }
+            break;
         }
 
-        if(trigged) {
-            trigged--;
-            board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
-            counter++;
-            if(trigged == 0) board_led_rgb(0, 0, 0);
- 
-        }
+        // switch( State ) {
+        // case RX:
+        //     printf(" [RX]");
+        //     // if( BufferSize > 0 ) {
+        //     //     printf("Received: [%s]\r\n", Buffer);
+        //     //     Radio.Rx( RX_TIMEOUT_VALUE );
+        //     // }
+        //     State = LOWPOWER;
+        //     break;
 
-        switch( State ) {
-        case RX:
-            printf(" [RX]");
-            // if( BufferSize > 0 ) {
-            //     printf("Received: [%s]\r\n", Buffer);
-            //     Radio.Rx( RX_TIMEOUT_VALUE );
-            // }
-            State = LOWPOWER;
-            break;
+        // case TX:
+        //     printf(" [TX]");
+        //     // Radio.Rx( RX_TIMEOUT_VALUE );
+        //     State = LOWPOWER;
+        //     break;
+        // case RX_TIMEOUT:
+        //     printf(" [RX_TIMEOUT]");
+        //     // Radio.Rx( RX_TIMEOUT_VALUE );
+        //     State = LOWPOWER;
+        //     break;
+        // case RX_ERROR:
+        //     printf(" [RX_ERROR]");
+        //     // Radio.Rx( RX_TIMEOUT_VALUE );
+        //     State = LOWPOWER;
+        //     break;
+        // case TX_TIMEOUT:
+        //     printf(" [TX_TIMEOUT]");
+        //     // Radio.Rx( RX_TIMEOUT_VALUE );
+        //     State = LOWPOWER;
+        //     break;
+        // case LOWPOWER:
+        //     break;
 
-        case TX:
-            printf(" [TX]");
-            // Radio.Rx( RX_TIMEOUT_VALUE );
-            State = LOWPOWER;
-            break;
-        case RX_TIMEOUT:
-            printf(" [RX_TIMEOUT]");
-            // Radio.Rx( RX_TIMEOUT_VALUE );
-            State = LOWPOWER;
-            break;
-        case RX_ERROR:
-            printf(" [RX_ERROR]");
-            // Radio.Rx( RX_TIMEOUT_VALUE );
-            State = LOWPOWER;
-            break;
-        case TX_TIMEOUT:
-            printf(" [TX_TIMEOUT]");
-            // Radio.Rx( RX_TIMEOUT_VALUE );
-            State = LOWPOWER;
-            break;
-        case LOWPOWER:
-            break;
-
-        default:
-        }
-
+        // default:
+        // }
 
         Radio.IrqProcess();
 
@@ -168,7 +227,9 @@ void OnTxDone( void )
 {
     printf("OnTxDone\r\n");
     Radio.Sleep();
-    State = TX;
+    // State = TX;
+    State = LOWPOWER;
+    tx_in_progress = false;
 }
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
@@ -190,6 +251,7 @@ void OnTxTimeout( void )
     printf("OnTxTimeout\r\n");
     Radio.Sleep();
     State = TX_TIMEOUT;
+    tx_in_progress = false;
 }
 
 void OnRxTimeout( void )
@@ -220,7 +282,7 @@ static void gptimer_simple_timer(timer_gp_t* TIMERx)
     timer_init(TIMERx, &timerx_init);
 
     timer_generate_event(TIMERx, TIMER_EGR_UG, ENABLE);
-    timer_clear_status(TIMER0, TIMER_SR_UIF);
+    timer_clear_status(TIMERx, TIMER_SR_UIF);
 
     timer_cmd(TIMERx, true);
 }
@@ -235,3 +297,17 @@ void assert_failed(void* file, uint32_t line)
     while (1) { }
 }
 #endif
+
+void GPIO_IRQHandler(void)
+{
+    if (gpio_get_interrupt_status(GPIOA, GPIO_PIN_11) == SET) {
+        gpio_clear_interrupt(GPIOA, GPIO_PIN_11);
+        activity_trigged = true;
+    }
+
+    // BOOT key
+    if (gpio_get_interrupt_status(GPIOA, GPIO_PIN_2) == SET) {
+        gpio_clear_interrupt(GPIOA, GPIO_PIN_2);
+        boot_trigged = true;
+    }
+}

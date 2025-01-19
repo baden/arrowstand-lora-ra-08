@@ -111,11 +111,13 @@ int main(void)
             );
             OLED_prints(0, 0, buf);
         }
+        board_led_rgb(0, 0, 0);
 
         switch( State ) {
         case RX:
             printf(" [RX]");
             receives++;
+            board_led_rgb(1, 1, 1);
             // if( BufferSize > 0 ) {
             //     printf("Received: [%s]\r\n", Buffer);
             //     Radio.Rx( RX_TIMEOUT_VALUE );

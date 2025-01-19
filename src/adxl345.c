@@ -158,6 +158,14 @@ static void setInterrupt(uint8_t interruptBit, bool state) {
     setRegisterBit(ADXL345_REG_INT_ENABLE, interruptBit, state);
 }
 
+// Sets the INT_INVERT bit
+// if set to 0 sets the interrupts to active high
+// if set to 1 sets the interrupts to active low
+static void setInterruptLevelBit(bool interruptLevelBit) {
+    setRegisterBit(ADXL345_REG_DATA_FORMAT, 5, interruptLevelBit);
+}
+
+
 void adxl345_init(uint8_t sensitivity)
 {
     powerOn();
@@ -208,6 +216,7 @@ void adxl345_init(uint8_t sensitivity)
     // adxl.setInterruptMapping(ADXL345_INT_DOUBLE_TAP_BIT,   ADXL345_INT1_PIN);
     // adxl.setInterruptMapping(ADXL345_INT_FREE_FALL_BIT,    ADXL345_INT1_PIN);
     setInterruptMapping(ADXL345_INT_ACTIVITY_BIT,     ADXL345_INT1_PIN);
+    setInterruptLevelBit(true);
 
 #if 0
     // Но сейчас нам это не нужно - ещё не спим
