@@ -27,10 +27,10 @@ uint16_t BufferSize = BUFFER_SIZE;
 uint8_t Buffer[BUFFER_SIZE];
 
 volatile States_t State = LOWPOWER;
-*/
 
 int8_t RssiValue = 0;
 int8_t SnrValue = 0;
+*/
 
 uint32_t ChipId[2] = {0};
 

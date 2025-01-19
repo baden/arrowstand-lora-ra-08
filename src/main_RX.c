@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "tremo_rcc.h"
 #include "tremo_gpio.h"
 #include "tremo_delay.h"
@@ -70,12 +71,19 @@ typedef enum
 
 volatile States_t State = LOWPOWER;
 
+#define BUFFER_SIZE                                 5 // Define the payload size here
+uint16_t BufferSize = BUFFER_SIZE;
+uint8_t Buffer[BUFFER_SIZE];
+int8_t RssiValue = 0;
+int8_t SnrValue = 0;
+
 const char* progress = "/-\\|";
 
 int main(void)
 {
     static unsigned counter = 0;
     static unsigned receives = 0;
+    static unsigned off_after = 0;
 
     // uint32_t clk_freq = rcc_get_clk_freq(RCC_HCLK);
     // uint32_t tick_rate = 1000;
@@ -103,21 +111,41 @@ int main(void)
 
         if(tick) {
             tick--;
-            counter++;
-            snprintf(buf, sizeof(buf),
-                "%c:%d"
-                , progress[counter & 3]
-                , receives
-            );
-            OLED_prints(0, 0, buf);
+
+            if(off_after) {
+                off_after--;
+                if(off_after == 0) {
+                    OLED_fill(0x00);
+                    board_led_rgb(0, 0, 0);
+                }
+            }
+            // counter++;
+            // snprintf(buf, sizeof(buf),
+            //     "%c:%d"
+            //     , progress[counter & 3]
+            //     , receives
+            // );
+            // OLED_prints(0, 0, buf);
         }
-        board_led_rgb(0, 0, 0);
+        // board_led_rgb(0, 0, 0);
 
         switch( State ) {
         case RX:
             printf(" [RX]");
             receives++;
             board_led_rgb(1, 1, 1);
+
+            if( BufferSize > 0 ) {
+                snprintf(buf, sizeof(buf),
+                    "%d.%d"
+                    , Buffer[4]     // Counter?
+                    , RssiValue
+                );
+                OLED_prints(0, 0, buf);
+
+                off_after = 5;      // Через 0.5 сек погасить
+            }
+
             // if( BufferSize > 0 ) {
             //     printf("Received: [%s]\r\n", Buffer);
             //     Radio.Rx( RX_TIMEOUT_VALUE );
@@ -158,22 +186,19 @@ int main(void)
 
 void OnTxDone( void )
 {
-    printf("OnTxDone\r\n");
     Radio.Sleep();
+    printf("OnTxDone\r\n");
     State = TX;
 }
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
-    printf("OnRxDone\r\n");
     Radio.Sleep( );
-
-/*
+    printf("OnRxDone (%d, %d, %d)\r\n", size, rssi, snr);
     BufferSize = size;
     memcpy( Buffer, payload, BufferSize );
     RssiValue = rssi;
     SnrValue = snr;
-*/
     State = RX;
 }
 
@@ -209,6 +234,7 @@ void assert_failed(void* file, uint32_t line)
 }
 #endif
 
+// 1 тік буде 1/10 сек
 
 static void gptimer_simple_timer(timer_gp_t* TIMERx)
 {
@@ -216,7 +242,7 @@ static void gptimer_simple_timer(timer_gp_t* TIMERx)
 
     timer_config_interrupt(TIMERx, TIMER_DIER_UIE, ENABLE);
 
-    timerx_init.prescaler          = 23999;  //sysclock defaults to 24M, is divided by (prescaler + 1) to 1k
+    timerx_init.prescaler          = (24000/10)-1 /*23999*/;  //sysclock defaults to 24M, is divided by (prescaler + 1) to 1k
     timerx_init.counter_mode       = TIMER_COUNTERMODE_UP;
     timerx_init.period             = 1000;   //time period is ((1 / 1k) * 1000) 
     timerx_init.clock_division     = TIMER_CKD_FPCLK_DIV1;
