@@ -58,6 +58,7 @@ all: $(BUILD_DIR)/$(PROJECT)-$(ROLE).bin
 
 flash: $(BUILD_DIR)/$(PROJECT)-$(ROLE).bin
 	python3 scripts/tremo_loader.py -p ${PORT} -b 921600 flash 0x08000000 $<
+	# python3 scripts/tremo_loader.py -p ${PORT} -b 19200 flash 0x08000000 $<
 
 flash1: $(BUILD_DIR)/$(PROJECT)-$(ROLE).bin
 	python3 scripts/tremo_loader.py -p ${PORT} -b 115200 flash 0x08000000 $<

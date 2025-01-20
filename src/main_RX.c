@@ -182,7 +182,7 @@ int main(void)
 
             if( BufferSize > 0 ) {
                 snprintf(buf, sizeof(buf),
-                    "%3d %d"
+                    "%d %d  "
                     , Buffer[4]     // Sensitivity?
                     , receives
                 );

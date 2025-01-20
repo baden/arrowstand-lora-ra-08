@@ -37,7 +37,8 @@ ROLE=RX make
 Прошиваємо
 
 ```bash
-PORT=/dev/ttyUSB0 make flash
+make clean && PORT=/dev/ttyUSB0 ROLE=RX make flash
+make clean && PORT=/dev/ttyUSB0 ROLE=TX make flash
 ```
 
 От, сюка. Под Linux прошивається, а от під Мас не хоче.

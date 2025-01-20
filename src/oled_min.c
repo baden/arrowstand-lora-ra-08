@@ -197,6 +197,7 @@ void OLED_prints(uint8_t x, uint8_t y, char* str) {
       // for(unsigned i = 5; i; i--) I2C_write(OLED_FONT[ptr++]);
 
       ptr *= FONT_W;
+      ptr += FONT_WCS;
       for(unsigned i = 0; i < FONT_WC; i++) {
         if(j==0) I2C_write((font[ptr++]>>(0+FSH)) & 0xFF);
         else if(j==1) I2C_write((font[ptr++]>>(8+FSH)) & 0xFF);
