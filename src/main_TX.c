@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "tremo_rcc.h"
 #include "tremo_gpio.h"
 #include "tremo_delay.h"
@@ -14,7 +15,7 @@
 #include "radio.h"
 
 // gpio_t*  g_test_gpiox = GPIOA;
-// uint32_t g_test_pin   = GPIO_PIN_11;
+// uint2_t g_test_pin   = GPIO_PIN_11;
 
 // #define TEST_GPIOX GPIOA
 // #define TEST_PIN   GPIO_PIN_9
@@ -90,6 +91,7 @@ static volatile bool activity_trigged = false;
 static volatile bool boot_trigged = false;
 
 volatile bool tx_in_progress = false;
+volatile bool rx_in_progress = false;
 
 enum mode {
     MODE_SENSOR = 0,
@@ -97,6 +99,9 @@ enum mode {
 };
 
 enum mode mode = MODE_SENSOR;
+
+// Протягом 0.5 сек після відправки може прийти корекція чутливості
+#define RX_TIMEOUT_VALUE                            500
 
 int main(void)
 {
@@ -117,8 +122,6 @@ int main(void)
 
     /* Infinite loop */
     while (1) {
-
-
         if(boot_trigged) {
             boot_trigged = false;
 
@@ -134,7 +137,7 @@ int main(void)
                 activity_trigged = false;
                 trigged = 30;
 
-                if(!tx_in_progress) {
+                if(!tx_in_progress && !rx_in_progress) {
                     tx_in_progress = true;
                     Buffer[0] = 'P';
                     Buffer[1] = 'I';
@@ -154,7 +157,6 @@ int main(void)
                 board_led_rgb(counter & (1<<0), counter & (1<<1), counter & (1<<2));
                 counter++;
                 if(trigged == 0) board_led_rgb(0, 0, 0);
-    
             }
             break;
         
@@ -162,7 +164,7 @@ int main(void)
             if(tick) {
                 tick--;
 
-                if(!tx_in_progress) {
+                if(!tx_in_progress && !rx_in_progress) {
                     tx_in_progress = true;
                     Buffer[0] = 'P';
                     Buffer[1] = 'I';
@@ -181,41 +183,54 @@ int main(void)
             break;
         }
 
-        // switch( State ) {
-        // case RX:
-        //     printf(" [RX]");
-        //     // if( BufferSize > 0 ) {
-        //     //     printf("Received: [%s]\r\n", Buffer);
-        //     //     Radio.Rx( RX_TIMEOUT_VALUE );
-        //     // }
-        //     State = LOWPOWER;
-        //     break;
+        switch( State ) {
+        case RX:
+            printf(" [RX]");
+            rx_in_progress = false;
+            if( BufferSize > 0 ) {
+                // Отримання корекції чутливості?
+                if(Buffer[0] == 'C') {
+                    int correction = Buffer[1];
+                    correction -= 64;
+                    sencitive += correction;
 
-        // case TX:
-        //     printf(" [TX]");
-        //     // Radio.Rx( RX_TIMEOUT_VALUE );
-        //     State = LOWPOWER;
-        //     break;
-        // case RX_TIMEOUT:
-        //     printf(" [RX_TIMEOUT]");
-        //     // Radio.Rx( RX_TIMEOUT_VALUE );
-        //     State = LOWPOWER;
-        //     break;
-        // case RX_ERROR:
-        //     printf(" [RX_ERROR]");
-        //     // Radio.Rx( RX_TIMEOUT_VALUE );
-        //     State = LOWPOWER;
-        //     break;
-        // case TX_TIMEOUT:
-        //     printf(" [TX_TIMEOUT]");
-        //     // Radio.Rx( RX_TIMEOUT_VALUE );
-        //     State = LOWPOWER;
-        //     break;
-        // case LOWPOWER:
-        //     break;
+                    adxl345_setSensitivity(sencitive);
+                    // TODO: Save to NVM
+                }
+            //     printf("Received: [%s]\r\n", Buffer);
+            //     Radio.Rx( RX_TIMEOUT_VALUE );
+            }
+            State = LOWPOWER;
+            break;
 
-        // default:
-        // }
+        case TX:
+            printf(" [TX]");
+            rx_in_progress = true;
+            Radio.Rx( RX_TIMEOUT_VALUE );
+            State = LOWPOWER;
+            break;
+        case RX_TIMEOUT:
+            printf(" [RX_TIMEOUT]");
+            rx_in_progress = false;
+            // Radio.Rx( RX_TIMEOUT_VALUE );
+            State = LOWPOWER;
+            break;
+        case RX_ERROR:
+            printf(" [RX_ERROR]");
+            rx_in_progress = false;
+            // Radio.Rx( RX_TIMEOUT_VALUE );
+            State = LOWPOWER;
+            break;
+        case TX_TIMEOUT:
+            printf(" [TX_TIMEOUT]");
+            // Radio.Rx( RX_TIMEOUT_VALUE );
+            State = LOWPOWER;
+            break;
+        case LOWPOWER:
+            break;
+
+        default:
+        }
 
         Radio.IrqProcess();
 
@@ -227,22 +242,20 @@ void OnTxDone( void )
 {
     printf("OnTxDone\r\n");
     Radio.Sleep();
-    // State = TX;
-    State = LOWPOWER;
+    State = TX;
+    // State = LOWPOWER;
     tx_in_progress = false;
 }
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
-    printf("OnRxDone\r\n");
+    printf("OnRxDone %d [%02x,%02x]\r\n", size, payload[0], payload[1]);
     Radio.Sleep( );
 
-/*
     BufferSize = size;
     memcpy( Buffer, payload, BufferSize );
-    RssiValue = rssi;
-    SnrValue = snr;
-*/
+    // RssiValue = rssi;
+    // SnrValue = snr;
     State = RX;
 }
 

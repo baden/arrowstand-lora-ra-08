@@ -165,6 +165,11 @@ static void setInterruptLevelBit(bool interruptLevelBit) {
     setRegisterBit(ADXL345_REG_DATA_FORMAT, 5, interruptLevelBit);
 }
 
+void adxl345_setSensitivity(uint8_t sensitivity)
+{
+    setActivityThreshold( sensitivity );
+    setInactivityThreshold( sensitivity-1);
+}
 
 void adxl345_init(uint8_t sensitivity)
 {

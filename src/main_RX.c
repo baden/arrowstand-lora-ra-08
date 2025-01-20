@@ -197,6 +197,17 @@ int main(void)
                 OLED_printsS(0, 3, buf);
 
                 off_after = 5;      // Через 0.5 сек погасить
+
+                // Якшо є коррекция, відправимо значення
+                if(correction != 0) {
+                    Buffer[0] = 'C';
+                    Buffer[1] = correction+64;
+                    // Buffer[2] = ' ';
+                    Radio.Send( Buffer, BufferSize );
+                    correction = 0;
+                    State = LOWPOWER;
+                    break;
+                }
             }
 
             // if( BufferSize > 0 ) {
@@ -209,22 +220,22 @@ int main(void)
 
         case TX:
             printf(" [TX]");
-            Radio.Rx( RX_TIMEOUT_VALUE );
+            Radio.Rx( 0 /*RX_TIMEOUT_VALUE*/ );
             State = LOWPOWER;
             break;
         case RX_TIMEOUT:
             printf(" [RX_TIMEOUT]");
-            Radio.Rx( RX_TIMEOUT_VALUE );
+            Radio.Rx( 0 /*RX_TIMEOUT_VALUE*/ );
             State = LOWPOWER;
             break;
         case RX_ERROR:
             printf(" [RX_ERROR]");
-            Radio.Rx( RX_TIMEOUT_VALUE );
+            Radio.Rx( 0 /*RX_TIMEOUT_VALUE*/ );
             State = LOWPOWER;
             break;
         case TX_TIMEOUT:
             printf(" [TX_TIMEOUT]");
-            Radio.Rx( RX_TIMEOUT_VALUE );
+            Radio.Rx( 0 /*RX_TIMEOUT_VALUE*/ );
             State = LOWPOWER;
             break;
         case LOWPOWER:
