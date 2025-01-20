@@ -18,7 +18,8 @@
 // uint32_t g_test_pin   = GPIO_PIN_11;
 
 // #define TEST_GPIOX GPIOA
-// #define TEST_PIN   GPIO_PIN_9
+#define KEY_LEFT_PIN    GPIOA, GPIO_PIN_8
+#define KEY_RIGHT_PIN   GPIOA, GPIO_PIN_9
 
 static void gptimer_simple_timer(timer_gp_t* TIMERx);
 
@@ -33,6 +34,9 @@ static void init()
     gptimer_simple_timer(TIMER0);
     NVIC_EnableIRQ(TIMER0_IRQn);
     NVIC_SetPriority(TIMER0_IRQn, 2);
+
+    gpio_init(KEY_LEFT_PIN, GPIO_MODE_INPUT_PULL_UP);
+    gpio_init(KEY_RIGHT_PIN, GPIO_MODE_INPUT_PULL_UP);
 }
 
 // static uint8_t fac_us  = 0;
@@ -81,9 +85,12 @@ const char* progress = "/-\\|";
 
 int main(void)
 {
-    static unsigned counter = 0;
+    // static unsigned counter = 0;
     static unsigned receives = 0;
     static unsigned off_after = 0;
+    static gpio_level_t key_left_prev = GPIO_LEVEL_HIGH;
+    static gpio_level_t key_right_prev = GPIO_LEVEL_HIGH;
+    static int correction = 0;
 
     // uint32_t clk_freq = rcc_get_clk_freq(RCC_HCLK);
     // uint32_t tick_rate = 1000;
@@ -115,7 +122,7 @@ int main(void)
             if(off_after) {
                 off_after--;
                 if(off_after == 0) {
-                    OLED_fill(0x00);
+                    OLED_fillU(0x00);
                     board_led_rgb(0, 0, 0);
                 }
             }
@@ -126,6 +133,44 @@ int main(void)
             //     , receives
             // );
             // OLED_prints(0, 0, buf);
+
+            if(gpio_read(KEY_LEFT_PIN) == GPIO_LEVEL_LOW) {
+                if(key_left_prev == GPIO_LEVEL_HIGH) {
+                    key_left_prev = GPIO_LEVEL_LOW;
+                    // Натиснута ліва кнопка
+
+                    correction--;
+                    snprintf(buf, sizeof(buf),
+                        "<%3d >"
+                        , correction
+                    );
+                    OLED_prints(0, 0, buf);
+                    off_after = 10;      // Через 1 сек погасить
+
+
+                }
+            } else {
+                key_left_prev = GPIO_LEVEL_HIGH;
+            }
+
+            if(gpio_read(KEY_RIGHT_PIN) == GPIO_LEVEL_LOW) {
+                if(key_right_prev == GPIO_LEVEL_HIGH) {
+                    key_right_prev = GPIO_LEVEL_LOW;
+                    // Натиснута права кнопка
+
+                    correction++;
+                    snprintf(buf, sizeof(buf),
+                        "<%3d >"
+                        , correction
+                    );
+                    OLED_prints(0, 0, buf);
+                    off_after = 10;      // Через 1 сек погасить
+
+                }
+            } else {
+                key_right_prev = GPIO_LEVEL_HIGH;
+            }
+
         }
         // board_led_rgb(0, 0, 0);
 
@@ -137,11 +182,19 @@ int main(void)
 
             if( BufferSize > 0 ) {
                 snprintf(buf, sizeof(buf),
-                    "%d.%d"
-                    , Buffer[4]     // Counter?
-                    , RssiValue
+                    "%3d %d"
+                    , Buffer[4]     // Sensitivity?
+                    , receives
                 );
                 OLED_prints(0, 0, buf);
+
+                // OLED_setpos(0, 3);
+                snprintf(buf, sizeof(buf),
+                    "RSSI:%4d SNR:%d"
+                    , RssiValue
+                    , SnrValue
+                );
+                OLED_printsS(0, 3, buf);
 
                 off_after = 5;      // Через 0.5 сек погасить
             }

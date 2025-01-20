@@ -135,6 +135,16 @@ void OLED_fill(uint8_t p) {
   I2C_stop();                             // stop transmission
 }
 
+// OLED fill screen
+void OLED_fillU(uint8_t p) {
+  OLED_setpos(0, 0);                      // set cursor to display start
+  I2C_start(OLED_ADDR);                   // start transmission to OLED
+  I2C_write(OLED_DAT_MODE);               // set data mode
+  // for(uint16_t i=128*8; i; i--) I2C_write(p); // send pattern
+  for(uint16_t i=OLED_WIDTH*3; i; i--) I2C_write(p); // send pattern
+  I2C_stop();                             // stop transmission
+}
+
 // OLED draw bitmap
 void OLED_draw_bmp(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* bmp) {
   for(uint8_t y = y0; y < y1; y++) {
@@ -150,6 +160,7 @@ void OLED_draw_bmp(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t
 // #include "grotesk-bold-font-16x32.h"
 // #include "various-symbols-font-16x32.h"
 #include "ubuntu-bold-font-24x32.h"
+#include "font5x8.h"
 
 // // OLED plot a single character
 // void OLED_plotChar(char c) {
@@ -187,15 +198,37 @@ void OLED_prints(uint8_t x, uint8_t y, char* str) {
 
       ptr *= FONT_W;
       for(unsigned i = 0; i < FONT_WC; i++) {
-        if(j==0) I2C_write(font[ptr++] & 0xFF);
-        else if(j==1) I2C_write((font[ptr++]>>8) & 0xFF);
-        else if(j==2) I2C_write((font[ptr++]>>16) & 0xFF);
-        else I2C_write((font[ptr++]>>24) & 0xFF);
+        if(j==0) I2C_write((font[ptr++]>>(0+FSH)) & 0xFF);
+        else if(j==1) I2C_write((font[ptr++]>>(8+FSH)) & 0xFF);
+        else if(j==2) I2C_write((font[ptr++]>>(16+FSH)) & 0xFF);
+        else I2C_write((font[ptr++]>>(24+FSH)) & 0xFF);
       }
       I2C_write(0x00);                        // write space between characters
     }
     I2C_stop();                             // stop transmission
   }
+}
+
+
+void OLED_printsS(uint8_t x, uint8_t y, char* str) {
+    char* s = str;
+    OLED_setpos(x, y);
+    I2C_start(OLED_ADDR);                   // start transmission to OLED
+    I2C_write(OLED_DAT_MODE);               // set data mode
+    while(*s) {
+      uint8_t c = *s++;
+      uint16_t ptr = c - 32;                  // character pointer
+
+      // ptr += ptr << 2;                        // -> ptr = (ch - 32) * 5;
+      // for(unsigned i = 5; i; i--) I2C_write(OLED_FONT[ptr++]);
+
+      ptr *= 5;
+      for(unsigned i = 0; i < 5; i++) {
+        I2C_write((fontS[ptr++]<<1) & 0xFF);
+      }
+      I2C_write(0x00);                        // write space between characters
+    }
+    I2C_stop();                             // stop transmission
 }
 
 // void OLED_draw_buffer(uint8_t* buffer, size_t buffer_size)

@@ -2,8 +2,9 @@
 
 // Steeled from here: https://github.com/lynniemagoo/oled-font-pack/blob/master/fonts/16x32/retro-font-16x32.js
 #define FONT_W 24
-#define FONT_H 32
+#define FONT_H 24 //32
 
+#define FSH 2
 #define FONT_WC 20
 
 const uint32_t font[] = {
