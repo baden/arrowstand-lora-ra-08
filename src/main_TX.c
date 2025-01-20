@@ -230,6 +230,7 @@ int main(void)
             break;
 
         default:
+            break;
         }
 
         Radio.IrqProcess();
